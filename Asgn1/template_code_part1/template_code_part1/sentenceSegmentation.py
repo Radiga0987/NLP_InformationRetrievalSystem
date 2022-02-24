@@ -28,8 +28,8 @@ class SentenceSegmentation():
 			s = re.split('[.?!]', text)
 			segmentedText = [sentence.strip() for sentence in s]
 		else:
-			print("Invalid input")
-			return ([])
+			print("Error:Input text is not a string")
+			return []
 
 		return segmentedText
 
@@ -53,6 +53,6 @@ class SentenceSegmentation():
 			tokenizer_object = PunktSentenceTokenizer(text)  #This creates a  PunktSentenceTokenizer object
 			segmentedText = tokenizer_object.tokenize(text)
 		else:
-			print('Warning. Argument passed not a string.')
-			return ([])
+			print("Error:Input text is not a string")
+			return []
 		return segmentedText
