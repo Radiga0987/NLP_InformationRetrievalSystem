@@ -28,17 +28,7 @@ class StopwordRemoval():
 			representing a sentence with stopwords removed
 		"""
 
-		stopwordRemovedText = None
-
-		#Fill in code here
-
-		stopwordRemovedText = []
-		for sent in text:
-			new_sent = []
-			for token in sent:
-				if token not in self.sw_set:
-					new_sent.append(token)
-			stopwordRemovedText.append(new_sent)
+		stopwordRemovedText = [[token for token in sent if token not in self.sw_set] for sent in text]
 
 		return stopwordRemovedText
 
@@ -46,6 +36,4 @@ if __name__ == '__main__':
 	# Testing
 	swr = StopwordRemoval()
 	print(swr.fromList([['i', 'like', 'myself']]))
-
-
-	
+		
