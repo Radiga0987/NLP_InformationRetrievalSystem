@@ -26,7 +26,8 @@ class SentenceSegmentation():
 
 		if isinstance(text, str):
 			s = re.split('[.?!]', text)
-			segmentedText = [sentence.strip() for sentence in s]
+			new_s = [sentence.strip() for sentence in s]
+			segmentedText = [sent for sent in new_s if sent != '']
 		else:
 			print("Error:Input text is not a string")
 			return []
@@ -53,6 +54,12 @@ class SentenceSegmentation():
 			tokenizer_object = PunktSentenceTokenizer(text)  #This creates a  PunktSentenceTokenizer object
 			segmentedText = tokenizer_object.tokenize(text)
 		else:
-			print("Error:Input text is not a string")
+			print("Error: Input text is not a string")
 			return []
 		return segmentedText
+
+if __name__ == '__main__':
+	# Testing
+	ss = SentenceSegmentation()
+	print(ss.naive("I like trains, but cars are better. Give me some sunshine!"))
+	print(ss.punkt("I like trains, but cars are better. Give me some sunshine!"))

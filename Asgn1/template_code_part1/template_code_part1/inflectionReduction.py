@@ -1,3 +1,4 @@
+from numpy import isin
 from util import *
 
 # Add your import statements here
@@ -55,7 +56,31 @@ class InflectionReduction:
 			stemmed tokens representing a sentence
 		"""
 		
-		reducedText = [[self.stemmer.stem(token) for token in sent] for sent in text]
+		reducedText = []
+
+		if isinstance(text, list):
+			new_text = []
+			for sent in text:
+				if isinstance(sent, list):
+					new_sent = []
+					for token in sent:
+						if isinstance(token, str):
+							new_sent.append(self.stemmer.stem(token))
+						else:
+							print("Error: Expected string token, received a " + str(type(token)))
+							return []
+
+					new_text.append(new_sent)
+				
+				else:
+					print("Error: Expected sentence as a list, received a " + str(type(sent)))
+					return []
+			
+			reducedText = new_text
+		
+		else:
+			print("Error: Expected document as list, received a " + str(type(text)))
+			return []
 		
 		return reducedText
 
@@ -76,10 +101,36 @@ class InflectionReduction:
 			lemmatized tokens representing a sentence
 		"""
 		
-		reducedText = [[self.lemmatizer.lemmatize(token) for token in sent] for sent in text]
+		reducedText = []
+
+		if isinstance(text, list):
+			new_text = []
+			for sent in text:
+				if isinstance(sent, list):
+					new_sent = []
+					for token in sent:
+						if isinstance(token, str):
+							new_sent.append(self.lemmatizer.lemmatize(token))
+						else:
+							print("Error: Expected string token, received a " + str(type(token)))
+							return []
+
+					new_text.append(new_sent)
+				
+				else:
+					print("Error: Expected sentence as a list, received a " + str(type(sent)))
+					return []
+			
+			reducedText = new_text
+		
+		else:
+			print("Error: Expected document as list, received a " + str(type(text)))
+			return []
 		
 		return reducedText
 
 if __name__=='__main__':
+	# Testing
 	ir = InflectionReduction()
-	print(ir.lemmatize([['cars', 'suitcases']]))
+	print(ir.stem([['cars', 'suitcases']]))  # car, suitcas
+	print(ir.lemmatize([['cars', 'suitcases']]))  # car, suitcase

@@ -28,12 +28,39 @@ class StopwordRemoval():
 			representing a sentence with stopwords removed
 		"""
 
-		stopwordRemovedText = [[token for token in sent if token not in self.sw_set] for sent in text]
+		stopwordRemovedText = []
 
+		if isinstance(text, list):
+			new_text = []
+
+			for sent in text:
+				if isinstance(sent, list):
+					new_sent = []
+
+					for token in sent:
+						if isinstance(token, str):
+							if token not in self.sw_set:
+								new_sent.append(token)
+						else:
+							print("Error: Expected string token, received a " + str(type(token)))
+							return []
+				
+					new_text.append(new_sent)
+
+				else:
+					print("Error: Expected sentence as a list, received a " + str(type(sent)))
+					return []
+			
+			stopwordRemovedText = new_text
+
+		else:
+			print("Error: Expected document as list, received a " + str(type(text)))
+			return []
+			
 		return stopwordRemovedText
 
 if __name__ == '__main__':
 	# Testing
 	swr = StopwordRemoval()
 	print(swr.fromList([['i', 'like', 'myself']]))
-		
+	# Should return  [['like']]

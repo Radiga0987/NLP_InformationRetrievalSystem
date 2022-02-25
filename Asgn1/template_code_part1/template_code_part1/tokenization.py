@@ -23,29 +23,37 @@ class Tokenization():
 			A list of lists where each sub-list is a sequence of tokens
 		"""
 		
+		punct_symbols = ['\'','\"','?', ':', '!', '.', ',', ';','&','#','(',')','[',']','{','}','_','|']
+		space_symbols = ['', ' ']
 		tokenizedText = []
+		
 		if isinstance(text, list):
+			new_text = []
 			for s in text:
 				if isinstance(s, str):
+					new_s = []
 					tokens = re.split( "[' ,-/]", s) # spliting the sentences into words and symbols
 					for i in range(len(tokens)):
 						# removing punctuation symbols
-						if tokens[i]==['\'','\"','?', ':', '!', '.', ',', ';','&','#','(',')','[',']','{','}','_','|']:
-							del tokens[i]
+						if tokens[i] in punct_symbols:
+							continue
 						# removing unwanted spaces and empty characters
-						elif (tokens[i] ==' ') or (tokens[i] ==''):
-							del tokens[i]
-					tokenizedText.append(tokens) 
+						elif tokens[i] in space_symbols:
+							continue
+						else:
+							new_s.append(tokens[i])
+						
+					new_text.append(new_s) 
 				else:
-					print("Error:text input list does not contain strings")
+					print("Error: Text input list does not contain strings")
 					return []
+			
+			tokenizedText = new_text
 		else:
-			print("Error:text input is not a list")
+			print("Error: Text input is not a list")
 			return []
 			
 		return tokenizedText
-
-
 
 	def pennTreeBank(self, text):
 		"""
@@ -68,9 +76,16 @@ class Tokenization():
 					tokens = TreebankWordTokenizer().tokenize(s)
 					tokenizedText.append(tokens)
 				else:
-					print("Error:text input list does not contain strings")
+					print("Error: Text input list does not contain strings")
 					return []
 		else:
-			print("Error:text input is not a list")
+			print("Error: Text input is not a list")
 			return []
 		return tokenizedText
+
+if __name__ == '__main__':
+	# Testing
+	
+	tk = Tokenization()
+	print(tk.naive(['I like trains, but cars are better.', 'Give me some sunshine!']))
+	print(tk.pennTreeBank(['I like trains, but cars are better.', 'Give me some sunshine!']))
