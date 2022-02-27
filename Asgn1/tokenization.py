@@ -35,7 +35,6 @@ class Tokenization():
 				if isinstance(s, str):
 					new_s = []
 					tokens = re.split( "[' ,-/]", s) # spliting the sentences into words and symbols
-					print(tokens)
 					for i in range(len(tokens)):
 						# removing punctuation symbols
 						if tokens[i] in self.punct_symbols:
