@@ -41,7 +41,7 @@ class InflectionReduction:
 	def stem(self, text):
 		"""
 		Stemming using the Snowball stemmer from NLTK
-		https://stackoverflow.com/questions/24647400/what-is-the-best-stemming-method-in-python
+		https://stackoverflow.com/questions/10554052/what-are-the-major-differences-and-benefits-of-porter-and-lancaster-stemming-alg
 		
 		Parameters
 		----------
@@ -132,5 +132,5 @@ class InflectionReduction:
 if __name__=='__main__':
 	# Testing
 	ir = InflectionReduction()
-	print(ir.stem([['cars', 'suitcases']]))  # car, suitcas
-	print(ir.lemmatize([['cars', 'suitcases']]))  # car, suitcase
+	print(ir.stem([['cars', 'suitcases', 'radii']]))  # car, suitcas, radii
+	print(ir.lemmatize([['cars', 'suitcases', 'radii']]))  # car, suitcase, radius

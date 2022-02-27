@@ -9,8 +9,7 @@ from nltk.tokenize import TreebankWordTokenizer
 class Tokenization():
 
 	def __init__(self):
-		self.punct_symbols = ['\'','\"','?', ':', '!', '.', ',', ';','&','#','(',')','[',']','{','}','_','|']
-		self.space_symbols = ['', ' ']
+		self.punct_symbols = ['\'','\"','?', ':', '!', '.', ',', ';','&','#','(',')','[',']','{','}','_','|','-']
 
 	def naive(self, text):
 		"""
@@ -34,17 +33,13 @@ class Tokenization():
 			for s in text:
 				if isinstance(s, str):
 					new_s = []
-					tokens = re.split( "[' ,-/]", s) # spliting the sentences into words and symbols
+					tokens = re.split("\W+", s) # splitting at non-alphanumeric characters
 					for i in range(len(tokens)):
 						# removing punctuation symbols
-						if tokens[i] in self.punct_symbols:
-							continue
-						# removing unwanted spaces and empty characters
-						elif tokens[i] in self.space_symbols:
+						if tokens[i] == '':
 							continue
 						else:
-							new_s.append(tokens[i].strip('.!?\'\"'))
-						
+							new_s.append(tokens[i])
 					new_text.append(new_s) 
 				else:
 					print("Error: Text input list does not contain strings")
@@ -71,6 +66,7 @@ class Tokenization():
 		list
 			A list of lists where each sub-list is a sequence of tokens
 		"""
+
 		tokenizedText = []
 		if isinstance(text, list):
 			for s in text:
@@ -81,7 +77,7 @@ class Tokenization():
 					print("Error: Text input list does not contain strings")
 					return []
 			
-			for s_i in range(len(tokenizedText)):
+			for s_i in range(len(tokenizedText)): # Remove tokens that are lone punctuation symbols
 				new_s = []
 				for t_i in range(len(tokenizedText[s_i])):
 					if tokenizedText[s_i][t_i] not in self.punct_symbols:
