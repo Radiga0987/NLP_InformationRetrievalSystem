@@ -8,6 +8,10 @@ from nltk.tokenize import TreebankWordTokenizer
 
 class Tokenization():
 
+	def __init__(self):
+		self.punct_symbols = ['\'','\"','?', ':', '!', '.', ',', ';','&','#','(',')','[',']','{','}','_','|']
+		self.space_symbols = ['', ' ']
+
 	def naive(self, text):
 		"""
 		Tokenization using a Naive Approach
@@ -23,8 +27,6 @@ class Tokenization():
 			A list of lists where each sub-list is a sequence of tokens
 		"""
 		
-		punct_symbols = ['\'','\"','?', ':', '!', '.', ',', ';','&','#','(',')','[',']','{','}','_','|']
-		space_symbols = ['', ' ']
 		tokenizedText = []
 		
 		if isinstance(text, list):
@@ -33,15 +35,16 @@ class Tokenization():
 				if isinstance(s, str):
 					new_s = []
 					tokens = re.split( "[' ,-/]", s) # spliting the sentences into words and symbols
+					print(tokens)
 					for i in range(len(tokens)):
 						# removing punctuation symbols
-						if tokens[i] in punct_symbols:
+						if tokens[i] in self.punct_symbols:
 							continue
 						# removing unwanted spaces and empty characters
-						elif tokens[i] in space_symbols:
+						elif tokens[i] in self.space_symbols:
 							continue
 						else:
-							new_s.append(tokens[i])
+							new_s.append(tokens[i].strip('.!?\'\"'))
 						
 					new_text.append(new_s) 
 				else:
@@ -78,6 +81,13 @@ class Tokenization():
 				else:
 					print("Error: Text input list does not contain strings")
 					return []
+			
+			for s_i in range(len(tokenizedText)):
+				new_s = []
+				for t_i in range(len(tokenizedText[s_i])):
+					if tokenizedText[s_i][t_i] not in self.punct_symbols:
+						new_s.append(tokenizedText[s_i][t_i])
+				tokenizedText[s_i] = new_s.copy()
 		else:
 			print("Error: Text input is not a list")
 			return []
@@ -87,5 +97,5 @@ if __name__ == '__main__':
 	# Testing
 	
 	tk = Tokenization()
-	print(tk.naive(['I like trains, but cars are better.', 'Give me some sunshine!']))
-	print(tk.pennTreeBank(['I like trains, but cars are better.', 'Give me some sunshine!']))
+	print(tk.naive(['I like trains, but cars are better.', 'Give me some sunshine!', 'Don\'t take that']))
+	print(tk.pennTreeBank(['I like trains, but cars are better.', 'Give me some sunshine!', 'Don\'t take that']))

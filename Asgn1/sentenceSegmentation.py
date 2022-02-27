@@ -4,9 +4,6 @@ from util import *
 import re
 from nltk.tokenize import PunktSentenceTokenizer
 
-
-
-
 class SentenceSegmentation():
 
 	def naive(self, text):
@@ -25,7 +22,7 @@ class SentenceSegmentation():
 		"""
 
 		if isinstance(text, str):
-			s = re.split('[.?!]', text)
+			s = re.split("(?<=[.!?])", text)
 			new_s = [sentence.strip() for sentence in s]
 			segmentedText = [sent for sent in new_s if sent != '']
 		else:
@@ -50,6 +47,7 @@ class SentenceSegmentation():
 		list
 			A list of strings where each strin is a single sentence
 		"""
+
 		if (isinstance(text, str)):
 			tokenizer_object = PunktSentenceTokenizer(text)  #This creates a  PunktSentenceTokenizer object
 			segmentedText = tokenizer_object.tokenize(text)
@@ -61,5 +59,5 @@ class SentenceSegmentation():
 if __name__ == '__main__':
 	# Testing
 	ss = SentenceSegmentation()
-	print(ss.naive("I like trains, but cars are better. Give me some sunshine!"))
-	print(ss.punkt("I like trains, but cars are better. Give me some sunshine!"))
+	print(ss.naive("I like trains, but cars are better. Give me some sunshine! Go to www.google.com."))
+	print(ss.punkt("I like trains, but cars are better. Give me some sunshine! Go to www.google.com."))
