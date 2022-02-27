@@ -35,7 +35,7 @@ class Tokenization():
 					new_s = []
 					tokens = re.split("\W+", s) # splitting at non-alphanumeric characters
 					for i in range(len(tokens)):
-						# removing punctuation symbols
+						# removing empty characters
 						if tokens[i] == '':
 							continue
 						else:
