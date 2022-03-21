@@ -1,7 +1,7 @@
 from util import *
 
 # Add your import statements here
-
+import math
 
 
 
@@ -31,8 +31,17 @@ class Evaluation():
 		"""
 
 		precision = -1
+		num_relevant = 0
 
-		#Fill in code here
+		if k > len(query_doc_IDs_ordered):
+			print("Error! k is larger than number of documents retrieved")
+			return precision
+
+		for id in query_doc_IDs_ordered[:k]:
+			if int(id) in true_doc_IDs:
+				num_relevant += 1
+
+		precision = num_relevant/k
 
 		return precision
 
@@ -62,9 +71,22 @@ class Evaluation():
 			The mean precision value as a number between 0 and 1
 		"""
 
-		meanPrecision = -1
+		if len(doc_IDs_ordered) != len(query_ids):
+			print("Error! Number of queries is not equal to number of lists of document orders")
+			return -1
 
-		#Fill in code here
+		meanPrecision = 0
+		for i in range(len(query_ids)):
+			query_id = int(query_ids[i])
+			document_order = doc_IDs_ordered[i]
+			
+			true_doc_IDs = []
+			for d in qrels:
+				if int(d["query_num"]) ==  query_id:
+					true_doc_IDs.append(int(d["id"]))
+			meanPrecision += self.queryPrecision(document_order, query_id, true_doc_IDs, k)
+
+		meanPrecision /=  len(query_ids)
 
 		return meanPrecision
 
@@ -93,8 +115,17 @@ class Evaluation():
 		"""
 
 		recall = -1
+		num_relevant = 0
 
-		#Fill in code here
+		if k > len(query_doc_IDs_ordered):
+			print("Error! k is larger than number of documents retrieved")
+			return recall
+
+		for id in query_doc_IDs_ordered[:k]:
+			if int(id) in true_doc_IDs:
+				num_relevant += 1
+
+		recall = num_relevant/len(true_doc_IDs)
 
 		return recall
 
@@ -124,9 +155,22 @@ class Evaluation():
 			The mean recall value as a number between 0 and 1
 		"""
 
-		meanRecall = -1
+		if len(doc_IDs_ordered) != len(query_ids):
+			print("Error! Number of queries is not equal to number of lists of document orders")
+			return -1
 
-		#Fill in code here
+		meanRecall = 0
+		for i in range(len(query_ids)):
+			query_id = int(query_ids[i])
+			document_order = doc_IDs_ordered[i]
+			
+			true_doc_IDs = []
+			for d in qrels:
+				if int(d["query_num"]) ==  query_id:
+					true_doc_IDs.append(int(d["id"]))
+			meanRecall += self.queryRecall(document_order, query_id, true_doc_IDs, k)
+
+		meanRecall /=  len(query_ids)
 
 		return meanRecall
 
@@ -154,9 +198,15 @@ class Evaluation():
 			The fscore value as a number between 0 and 1
 		"""
 
-		fscore = -1
+		if k > len(query_doc_IDs_ordered):
+			print("Error! k is larger than number of documents retrieved")
+			return recall
 
-		#Fill in code here
+		fscore = -1
+		precision = self.queryPrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
+		recall = self.queryRecall(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
+
+		fscore = (2*precision*recall)/(precision+recall)
 
 		return fscore
 
@@ -186,12 +236,24 @@ class Evaluation():
 			The mean fscore value as a number between 0 and 1
 		"""
 
-		meanFscore = -1
+		if len(doc_IDs_ordered) != len(query_ids):
+			print("Error! Number of queries is not equal to number of lists of document orders")
+			return -1
 
-		#Fill in code here
+		meanFscore = 0
+		for i in range(len(query_ids)):
+			query_id = int(query_ids[i])
+			document_order = doc_IDs_ordered[i]
+			
+			true_doc_IDs = []
+			for d in qrels:
+				if int(d["query_num"]) ==  query_id:
+					true_doc_IDs.append(int(d["id"]))
+			meanFscore += self.queryFscore(document_order, query_id, true_doc_IDs, k)
+
+		meanFscore /=  len(query_ids)
 
 		return meanFscore
-	
 
 	def queryNDCG(self, query_doc_IDs_ordered, query_id, true_doc_IDs, k):
 		"""
@@ -205,8 +267,8 @@ class Evaluation():
 			their predicted order of relevance to a query
 		arg2 : int
 			The ID of the query in question
-		arg3 : list
-			The list of IDs of documents relevant to the query (ground truth)
+		arg3 : list of dicts
+			qrels passed here since we need the relevance scores too.
 		arg4 : int
 			The k value
 
@@ -216,9 +278,31 @@ class Evaluation():
 			The nDCG value as a number between 0 and 1
 		"""
 
-		nDCG = -1
+		if k > len(query_doc_IDs_ordered):
+			print("Error! k is larger than number of documents retrieved")
+			return -1
 
-		#Fill in code here
+		DCGk,IDCGk=0,0
+		doc_rel_scores={}
+
+
+		for d in true_doc_IDs:
+			if int(d["query_num"]) == int(query_id):
+				doc_rel_scores[int(d["id"])] = 5 - int(d["position"])
+
+		doc_list=doc_rel_scores.keys()
+		rel_values_descending=sorted(doc_rel_scores.values(),reverse=True)
+
+		for i in range(1,k+1):
+			if int(query_doc_IDs_ordered[i-1]) in doc_list:
+				DCGk += (2 ** doc_rel_scores[query_doc_IDs_ordered[i-1]] - 1) / math.log(i+1,2)
+			IDCGk += (2**rel_values_descending[i-1]-1) / math.log(i+1,2)
+
+		if IDCGk == 0:
+			print("IDCG@k = 0 and hence no relevant documents for given query")
+			return -1
+
+		nDCG = DCGk / IDCGk
 
 		return nDCG
 
@@ -248,9 +332,18 @@ class Evaluation():
 			The mean nDCG value as a number between 0 and 1
 		"""
 
-		meanNDCG = -1
+		if len(doc_IDs_ordered) != len(query_ids):
+			print("Error! Number of queries is not equal to number of lists of document orders")
+			return -1
 
-		#Fill in code here
+		meanNDCG = 0
+		for i in range(len(query_ids)):
+			query_id = int(query_ids[i])
+			document_order = doc_IDs_ordered[i]
+
+			meanNDCG += self.queryNDCG(document_order, query_id, qrels, k)
+
+		meanNDCG /=  len(query_ids)
 
 		return meanNDCG
 
@@ -279,9 +372,15 @@ class Evaluation():
 			The average precision value as a number between 0 and 1
 		"""
 
-		avgPrecision = -1
+		if k > len(query_doc_IDs_ordered):
+			print("Error! k is larger than number of documents retrieved")
+			return -1
 
-		#Fill in code here
+		avgPrecision = 0
+		for i in range(1,k+1):
+			avgPrecision += self.queryPrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, i)
+
+		avgPrecision /= k
 
 		return avgPrecision
 
@@ -311,9 +410,22 @@ class Evaluation():
 			The MAP value as a number between 0 and 1
 		"""
 
-		meanAveragePrecision = -1
+		if len(doc_IDs_ordered) != len(query_ids):
+			print("Error! Number of queries is not equal to number of lists of document orders")
+			return -1
 
-		#Fill in code here
+		meanAveragePrecision = 0
+		for i in range(len(query_ids)):
+			query_id = int(query_ids[i])
+			document_order = doc_IDs_ordered[i]
+			
+			true_doc_IDs = []
+			for d in q_rels:
+				if int(d["query_num"]) ==  query_id:
+					true_doc_IDs.append(d["id"])
+			meanAveragePrecision += self.queryAveragePrecision(document_order, query_id, true_doc_IDs, k)
+
+		meanAveragePrecision /=  len(query_ids)
 
 		return meanAveragePrecision
 
