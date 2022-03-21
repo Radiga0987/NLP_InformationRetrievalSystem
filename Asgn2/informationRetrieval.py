@@ -89,7 +89,7 @@ class InformationRetrieval():
 		
 		# Compute idf from df
 		for t in dfs:
-			idfs[t] = np.log(N/dfs[t])
+			idfs[t] = np.log(N/(1+dfs[t]))	# add 1 in denom to prevent div by 0
 		
 		# Multiply tf and idf
 		for id in tfs.keys():
@@ -129,7 +129,7 @@ class InformationRetrieval():
 			id = i
 			q = queries[id]
 			q_ti[id] = {}
-			
+			q_tfs[id] = {}
 			tokens = []
 			for sent in q:
 				tokens += sent
@@ -144,8 +144,11 @@ class InformationRetrieval():
 					q_tfs[id][t] = 1
 
 			# Compute tf-idf of queries
-			for t in q_tfs[id].keys():	
-				q_ti[id][t] = q_tfs[id][t] * self.idfs[t]
+			for t in q_tfs[id].keys():
+				if t in self.idfs:	
+					q_ti[id][t] = q_tfs[id][t] * self.idfs[t]
+				else:
+					q_ti[id][t] = 0		# if term is absent from documents, give it 0 weight in retrieval
 		
 		# Find docID ranking for each query
 			vq = q_ti[id]

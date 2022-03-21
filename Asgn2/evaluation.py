@@ -202,11 +202,14 @@ class Evaluation():
 			print("Error! k is larger than number of documents retrieved")
 			return recall
 
-		fscore = -1
+		# fscore = -1
 		precision = self.queryPrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
 		recall = self.queryRecall(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
 
-		fscore = (2*precision*recall)/(precision+recall)
+		if precision == 0.0 and recall == 0.0:	# when both zero, set fscore 0. Derived from limit of fscore as p,r -> 0
+			fscore = 0
+		else:
+			fscore = (2*precision*recall)/(precision+recall)
 
 		return fscore
 
@@ -292,11 +295,12 @@ class Evaluation():
 
 		doc_list=doc_rel_scores.keys()
 		rel_values_descending=sorted(doc_rel_scores.values(),reverse=True)
-
+		len_rvd = len(rel_values_descending)
 		for i in range(1,k+1):
 			if int(query_doc_IDs_ordered[i-1]) in doc_list:
 				DCGk += (2 ** doc_rel_scores[query_doc_IDs_ordered[i-1]] - 1) / math.log(i+1,2)
-			IDCGk += (2**rel_values_descending[i-1]-1) / math.log(i+1,2)
+			if i<len_rvd:
+				IDCGk += (2**rel_values_descending[i-1]-1) / math.log(i+1,2)
 
 		if IDCGk == 0:
 			print("IDCG@k = 0 and hence no relevant documents for given query")
