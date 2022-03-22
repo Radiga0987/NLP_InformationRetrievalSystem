@@ -33,15 +33,15 @@ class Evaluation():
 		precision = -1
 		num_relevant = 0
 
-		if k > len(query_doc_IDs_ordered):
+		if k > len(query_doc_IDs_ordered): 
 			print("Error! k is larger than number of documents retrieved")
 			return precision
-
-		for id in query_doc_IDs_ordered[:k]:
+		# Finding number of relevant documents in the top k retrieved documents
+		for id in query_doc_IDs_ordered[:k]:  
 			if int(id) in true_doc_IDs:
 				num_relevant += 1
 
-		precision = num_relevant/k
+		precision = num_relevant/k  #Dividing by k to get precision@k
 
 		return precision
 
@@ -76,7 +76,7 @@ class Evaluation():
 			return -1
 
 		meanPrecision = 0
-		for i in range(len(query_ids)):
+		for i in range(len(query_ids)):  #This loop sums the precision for all queries
 			query_id = int(query_ids[i])
 			document_order = doc_IDs_ordered[i]
 			
@@ -84,9 +84,10 @@ class Evaluation():
 			for d in qrels:
 				if int(d["query_num"]) ==  query_id:
 					true_doc_IDs.append(int(d["id"]))
+			#We use queryPrecision function to get precision for given query
 			meanPrecision += self.queryPrecision(document_order, query_id, true_doc_IDs, k)
 
-		meanPrecision /=  len(query_ids)
+		meanPrecision /=  len(query_ids)  #Dividing by number of queries to get mean precision
 
 		return meanPrecision
 
@@ -121,11 +122,12 @@ class Evaluation():
 			print("Error! k is larger than number of documents retrieved")
 			return recall
 
+		# Finding number of relevant documents in the top k retrieved documents
 		for id in query_doc_IDs_ordered[:k]:
 			if int(id) in true_doc_IDs:
 				num_relevant += 1
 
-		recall = num_relevant/len(true_doc_IDs)
+		recall = num_relevant/len(true_doc_IDs) #Dividing by total number of relevant documents to get recall@k
 
 		return recall
 
@@ -160,7 +162,7 @@ class Evaluation():
 			return -1
 
 		meanRecall = 0
-		for i in range(len(query_ids)):
+		for i in range(len(query_ids)):  #This loop sums the recall for all queries
 			query_id = int(query_ids[i])
 			document_order = doc_IDs_ordered[i]
 			
@@ -168,9 +170,10 @@ class Evaluation():
 			for d in qrels:
 				if int(d["query_num"]) ==  query_id:
 					true_doc_IDs.append(int(d["id"]))
+			#We use queryRecall function to get recall for given query
 			meanRecall += self.queryRecall(document_order, query_id, true_doc_IDs, k)
 
-		meanRecall /=  len(query_ids)
+		meanRecall /=  len(query_ids) #Dividing by number of queries to get mean recall
 
 		return meanRecall
 
@@ -202,7 +205,7 @@ class Evaluation():
 			print("Error! k is larger than number of documents retrieved")
 			return recall
 
-		# fscore = -1
+		# We use the previously defined precision and recall functions for finding Fscore
 		precision = self.queryPrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
 		recall = self.queryRecall(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
 
@@ -244,7 +247,7 @@ class Evaluation():
 			return -1
 
 		meanFscore = 0
-		for i in range(len(query_ids)):
+		for i in range(len(query_ids)): #This loop sums the Fscore for all queries
 			query_id = int(query_ids[i])
 			document_order = doc_IDs_ordered[i]
 			
@@ -252,9 +255,10 @@ class Evaluation():
 			for d in qrels:
 				if int(d["query_num"]) ==  query_id:
 					true_doc_IDs.append(int(d["id"]))
+			#We use queryFscore function to get Fscore for given query
 			meanFscore += self.queryFscore(document_order, query_id, true_doc_IDs, k)
 
-		meanFscore /=  len(query_ids)
+		meanFscore /=  len(query_ids) #Dividing by number of queries to get mean Fscore
 
 		return meanFscore
 
@@ -288,25 +292,24 @@ class Evaluation():
 		DCGk,IDCGk=0,0
 		doc_rel_scores={}
 
-
-		for d in true_doc_IDs:
+		for d in true_doc_IDs: #Getting relevance scores from cran_qrels.json
 			if int(d["query_num"]) == int(query_id):
 				doc_rel_scores[int(d["id"])] = 5 - int(d["position"])
 
 		doc_list=doc_rel_scores.keys()
 		rel_values_descending=sorted(doc_rel_scores.values(),reverse=True)
 		len_rvd = len(rel_values_descending)
-		for i in range(1,k+1):
+		for i in range(1,k+1): #Finding DCG and IDCG values for top k retrieved documents (Formula in report)
 			if int(query_doc_IDs_ordered[i-1]) in doc_list:
-				DCGk += (2 ** doc_rel_scores[query_doc_IDs_ordered[i-1]] - 1) / math.log(i+1,2)
+				DCGk += doc_rel_scores[query_doc_IDs_ordered[i-1]]/ math.log(i+1,2)
 			if i<len_rvd:
-				IDCGk += (2**rel_values_descending[i-1]-1) / math.log(i+1,2)
+				IDCGk += rel_values_descending[i-1] / math.log(i+1,2)
 
 		if IDCGk == 0:
 			print("IDCG@k = 0 and hence no relevant documents for given query")
 			return -1
 
-		nDCG = DCGk / IDCGk
+		nDCG = DCGk / IDCGk  # Dividing DCG@k by IDCG@k to get nDCG@k
 
 		return nDCG
 
@@ -341,13 +344,13 @@ class Evaluation():
 			return -1
 
 		meanNDCG = 0
-		for i in range(len(query_ids)):
+		for i in range(len(query_ids)):  #This loop sums the nDCG values for all queries
 			query_id = int(query_ids[i])
 			document_order = doc_IDs_ordered[i]
-
+			#We use queryNDCG function to get nDCG for given query
 			meanNDCG += self.queryNDCG(document_order, query_id, qrels, k)
 
-		meanNDCG /=  len(query_ids)
+		meanNDCG /=  len(query_ids) #Dividing by number of queries to get mean nDCG
 
 		return meanNDCG
 
@@ -381,10 +384,10 @@ class Evaluation():
 			return -1
 
 		avgPrecision = 0
-		for i in range(1,k+1):
+		for i in range(1,k+1):  #This loop sums the precision@K values for K from 1 to k
 			avgPrecision += self.queryPrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, i)
 
-		avgPrecision /= k
+		avgPrecision /= k  #Dividing by k to get AP
 
 		return avgPrecision
 
@@ -419,7 +422,7 @@ class Evaluation():
 			return -1
 
 		meanAveragePrecision = 0
-		for i in range(len(query_ids)):
+		for i in range(len(query_ids)): #This loop sums the Average precision values for all queries
 			query_id = int(query_ids[i])
 			document_order = doc_IDs_ordered[i]
 			
@@ -427,9 +430,10 @@ class Evaluation():
 			for d in q_rels:
 				if int(d["query_num"]) ==  query_id:
 					true_doc_IDs.append(int(d["id"]))
+			#We use queryAveragePrecision function to get AP for given query
 			meanAveragePrecision += self.queryAveragePrecision(document_order, query_id, true_doc_IDs, k)
 
-		meanAveragePrecision /=  len(query_ids)
+		meanAveragePrecision /=  len(query_ids) #Dividing by number of queries to get mean AP
 
 		return meanAveragePrecision
 

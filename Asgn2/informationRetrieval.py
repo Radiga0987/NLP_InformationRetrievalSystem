@@ -42,7 +42,7 @@ class InformationRetrieval():
 		for t in a.keys():
 			if t in b:
 				tot += a[t]*b[t]
-		if moda != 0 and modb != 0:
+		if moda != 0 and modb != 0: # Prevent div by zero
 			return tot/(moda*modb)
 		else:
 			return 0
@@ -102,7 +102,7 @@ class InformationRetrieval():
 		
 		# Compute idf from df
 		for t in dfs:
-			idfs[t] = np.log10(N/(dfs[t]))	# add 1 in denom to prevent div by 0 (smoothing) #TODO check
+			idfs[t] = np.log10(N/(dfs[t]))
 		
 		# Multiply tf and idf
 		for id in tfs.keys():
@@ -133,8 +133,8 @@ class InformationRetrieval():
 		"""
 
 		# Compute tf-idf representation of queries
-		q_ti = {}
-		q_tfs = {}
+		q_ti = {}	# Final tf-idf location
+		q_tfs = {}	# Final tf locations
 		Q = len(queries)
 		print("Query count:", Q)
 		ranks = [None for _ in range(Q)]
@@ -158,14 +158,7 @@ class InformationRetrieval():
 				if t in q_tfs[id]:
 					q_ti[id][t] = q_tfs[id][t] * self.idfs[t]
 				else:
-					pass
-			# Compute tf-idf of queries
-			# for t in q_tfs[id].keys():
-			# 	if t in self.idfs:	
-			# 		q_ti[id][t] = q_tfs[id][t] * self.idfs[t]
-			# 	else:
-			# 		pass
-			# 		# q_ti[id][t] = 0		# if term is absent from documents, give it 0 weight in retrieval
+					pass 	# doesn't matter since new words (absent from dataset) should not be used for retrieval 
 		
 		# Find docID ranking for each query
 			vq = q_ti[id]
