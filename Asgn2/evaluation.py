@@ -206,7 +206,7 @@ class Evaluation():
 		precision = self.queryPrecision(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
 		recall = self.queryRecall(query_doc_IDs_ordered, query_id, true_doc_IDs, k)
 
-		if precision == 0.0 and recall == 0.0:	# when both zero, set fscore 0. Derived from limit of fscore as p,r -> 0
+		if precision == 0.0 or recall == 0.0:	# when any zero, set fscore 0. Derived from limit of fscore as p,r -> 0
 			fscore = 0
 		else:
 			fscore = (2*precision*recall)/(precision+recall)
@@ -426,7 +426,7 @@ class Evaluation():
 			true_doc_IDs = []
 			for d in q_rels:
 				if int(d["query_num"]) ==  query_id:
-					true_doc_IDs.append(d["id"])
+					true_doc_IDs.append(int(d["id"]))
 			meanAveragePrecision += self.queryAveragePrecision(document_order, query_id, true_doc_IDs, k)
 
 		meanAveragePrecision /=  len(query_ids)

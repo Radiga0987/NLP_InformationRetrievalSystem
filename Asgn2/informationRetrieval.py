@@ -28,11 +28,24 @@ class InformationRetrieval():
 		"""
 
 		tot = 0
+
+		moda = 0
+		for t in a.keys():
+			moda += a[t]**2
+		moda = moda ** 0.5
+
+		modb = 0
+		for t in b.keys():
+			modb += b[t]**2
+		modb = modb ** 0.5
+		
 		for t in a.keys():
 			if t in b:
 				tot += a[t]*b[t]
-		
-		return tot
+		if moda != 0 and modb != 0:
+			return tot/(moda*modb)
+		else:
+			return 0
 
 	def buildIndex(self, tokenizedDocs, docIDs):
 		"""
@@ -65,7 +78,7 @@ class InformationRetrieval():
 			tfs[id] = {}
 			index[id] = {}
 			sents = tds[i]
-			tokens = []
+			tokens = [] # [doc1, doc2] = [[sent1, sent2], [sent1, sent2]] = [[[token1, token2], [token1,token2]], [[token1, token2], [token1,token2]]]
 			for sent in sents:
 				tokens += sent
 			
@@ -89,7 +102,7 @@ class InformationRetrieval():
 		
 		# Compute idf from df
 		for t in dfs:
-			idfs[t] = np.log(N/(1+dfs[t]))	# add 1 in denom to prevent div by 0
+			idfs[t] = np.log10(N/(dfs[t]))	# add 1 in denom to prevent div by 0 (smoothing) #TODO check
 		
 		# Multiply tf and idf
 		for id in tfs.keys():
@@ -123,10 +136,10 @@ class InformationRetrieval():
 		q_ti = {}
 		q_tfs = {}
 		Q = len(queries)
+		print("Query count:", Q)
 		ranks = [None for _ in range(Q)]
 
-		for i in range(Q):
-			id = i
+		for id in range(Q):
 			q = queries[id]
 			q_ti[id] = {}
 			q_tfs[id] = {}
@@ -134,21 +147,25 @@ class InformationRetrieval():
 			for sent in q:
 				tokens += sent
 			
-			uniqueTokens = set()
-			
 			# Compute tf
 			for t in tokens:
 				if t in q_tfs[id]:
 					q_tfs[id][t] += 1
 				else:
 					q_tfs[id][t] = 1
-
-			# Compute tf-idf of queries
-			for t in q_tfs[id].keys():
-				if t in self.idfs:	
+			
+			for t in self.idfs:
+				if t in q_tfs[id]:
 					q_ti[id][t] = q_tfs[id][t] * self.idfs[t]
 				else:
-					q_ti[id][t] = 0		# if term is absent from documents, give it 0 weight in retrieval
+					pass
+			# Compute tf-idf of queries
+			# for t in q_tfs[id].keys():
+			# 	if t in self.idfs:	
+			# 		q_ti[id][t] = q_tfs[id][t] * self.idfs[t]
+			# 	else:
+			# 		pass
+			# 		# q_ti[id][t] = 0		# if term is absent from documents, give it 0 weight in retrieval
 		
 		# Find docID ranking for each query
 			vq = q_ti[id]
