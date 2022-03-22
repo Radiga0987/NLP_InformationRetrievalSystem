@@ -136,7 +136,6 @@ class InformationRetrieval():
 		q_ti = {}	# Final tf-idf location
 		q_tfs = {}	# Final tf locations
 		Q = len(queries)
-		print("Query count:", Q)
 		ranks = [None for _ in range(Q)]
 
 		for id in range(Q):
