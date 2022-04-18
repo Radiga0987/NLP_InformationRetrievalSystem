@@ -1,0 +1,8 @@
+Glasgow model
+Normalised tf idf
+LSA
+    SVD by library
+    Apply transformation on all docs
+    Apply transformation on query
+    Do cosine similarity
+    
