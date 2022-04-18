@@ -12,40 +12,27 @@ class InformationRetrieval():
 	def cosSim(self,a,b):
 		"""
 		Finds cosine similarity between two vectors a and b
-		represented as dictionaries
+		which are numpy arrays
 		
 		Parameters
 		----------
-		arg1 : dict
-			Dict whose key:value = term:tf-idf
-		arg2 : dict
-			Dict whose key:value = term:tf-idf
+		arg1 : array
+			np.array which has the document vector which is formed using latent dimensions
+		arg2 : array
+			np.array which has the query vector which is formed using latent dimensions
 
 		Returns
 		-------
-		cosSim : float
-			Sum of products of tf-idfs of a and b 
+		cos_sim : float
+			cosine similarity of a and b
 		"""
 
-		tot = 0
+		if np.linalg.norm(a) != 0 and np.linalg.norm(b) != 0:
+			cos_sim = np.dot(a,b)/(np.linalg.norm(a)* np.linalg.norm(b))
+		else :
+			cos_sim = 0
 
-		moda = 0
-		for t in a.keys():
-			moda += a[t]**2
-		moda = moda ** 0.5
-
-		modb = 0
-		for t in b.keys():
-			modb += b[t]**2
-		modb = modb ** 0.5
-		
-		for t in a.keys():
-			if t in b:
-				tot += a[t]*b[t]
-		if moda != 0 and modb != 0: # Prevent div by zero
-			return tot/(moda*modb)
-		else:
-			return 0
+		return cos_sim
 
 	def buildIndex(self, tokenizedDocs, docIDs):
 		"""
