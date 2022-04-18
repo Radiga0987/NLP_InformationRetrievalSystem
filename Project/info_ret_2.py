@@ -34,7 +34,7 @@ class InformationRetrieval():
 
 		return cos_sim
 
-	def buildIndex(self, tokenizedDocs, docIDs):
+	def buildIndex(self, tokenizedDocs, docIDs, k=100):
 		"""
 		Builds the document index in terms of the document
 		IDs and stores it in the 'index' class variable
@@ -52,7 +52,7 @@ class InformationRetrieval():
 		"""
 
 		
-		did2ind = {docIDs[i]:i for i in range(len(docIDs))}
+		d_id2ind = {docIDs[i]:i for i in range(len(docIDs))}
 
 		index = {} 	# = {docID:{term : tf-idf value}}
 		
@@ -120,11 +120,40 @@ class InformationRetrieval():
 			for t in tfs[id].keys():
 				index[id][t] = tfs[id][t] * idfs[t]
 		
+		# SVD of term-doc matrix
+		for i in range(term_ct):
+			for j in range(doc_ct):
+				td_mat[i,j] *= idfs[t_id2token[i]]
+		
+		U,S,Vt = np.linalg.svd(td_mat)
+		tot_energy = np.trace(S)
+		energy = 0
+		ct = 0
+		for i in range(len(S)):
+			energy += S[i,i]**2
+			ct += 1
+			if energy > 0.9*tot_energy:
+				break
+		U_k = U[:, :ct]
+		S_k = S[:ct,:ct]
+		Vt_k = Vt[:ct, :]
+
+		td_mat_lsa = np.inv(S_k) * U_k.T * td_mat
+
 		self.tfs = tfs
 		self.dfs = dfs
 		self.idfs = idfs
 		self.index = index
 		self.td_mat = td_mat
+		self.token2t_id = token2t_id
+		self.t_id2token = t_id2token
+		self.docIDs = docIDs
+		self.term_ct = term_ct
+		self.doc_ct = doc_ct
+		self.U_k = U_k
+		self.S_k = S_k
+		self.Vt_k = Vt_k
+		self.td_mat_lsa = td_mat_lsa
 
 	def rank(self, queries):
 		"""
@@ -149,7 +178,7 @@ class InformationRetrieval():
 		q_tfs = {}	# Final tf locations
 		Q = len(queries)
 		ranks = [None for _ in range(Q)]
-
+		
 		for id in range(Q):
 			q = queries[id]
 			q_ti[id] = {}
@@ -157,26 +186,32 @@ class InformationRetrieval():
 			tokens = []
 			for sent in q:
 				tokens += sent
-			
+			q_vec = np.zeros(self.td_mat.shape[0])
 			# Compute tf
 			for t in tokens:
 				if t in q_tfs[id]:
 					q_tfs[id][t] += 1
 				else:
 					q_tfs[id][t] = 1
+				q_vec[self.token2t_id[t]] += 1
 			
+			for i in range(q_vec.shape[0]):
+				q_vec[i] *= self.idfs[self.t_id2token[i]]
+
 			for t in self.idfs:
 				if t in q_tfs[id]:
 					q_ti[id][t] = q_tfs[id][t] * self.idfs[t]
 				else:
 					pass 	# doesn't matter since new words (absent from dataset) should not be used for retrieval 
-		
+			
+
+			
 		# Find docID ranking for each query
-			vq = q_ti[id]
+			vq = q_vec
 			scores = []
-			for d_id in self.index.keys():
-				vd = self.index[d_id]
-				scores.append([self.cosSim(vq, vd), d_id])
+			for i in range(self.doc_ct):
+				vd = self.td_mat[:,i]
+				scores.append([self.cosSim(vq, vd), self.docIDs[i]])
 			
 			scores.sort(reverse=True)
 			ranks[id] = [scores[d_ind][1] for d_ind in range(len(scores))]
