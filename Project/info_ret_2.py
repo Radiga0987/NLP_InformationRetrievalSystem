@@ -50,17 +50,41 @@ class InformationRetrieval():
 		-------
 		None
 		"""
-        #TODO Put in matrix form for LSA
+
+		
+		did2ind = {docIDs[i]:i for i in range(len(docIDs))}
+
 		index = {} 	# = {docID:{term : tf-idf value}}
 		
 		tfs = {}	# term frequencies = {docID:{term:freq}}
 		dfs = {}	# document frequencies = {term:docFreq}
 		idfs = {}	# inv doc frequencies = {term:invDocFreq}
 		tds = tokenizedDocs
-		N = len(docIDs)
+		doc_ct = len(docIDs)
+
+		# Find all unique terms
+		token2t_id = {}
+		t_id2token = {}
+		ct = 0
+		for i in range(doc_ct):
+			d_id = docIDs[i]
+			tokens = []
+			sents = tds[i]
+			for sent in sents:
+				tokens += sent
+			
+			for t in tokens:
+				if t not in token2t_id:
+					token2t_id[t] = ct
+					t_id2token[ct] = t
+					ct += 1
+
+		term_ct = len(list(token2t_id.keys()))
+
+		td_mat = np.zeros([term_ct, doc_ct])
 
 		# Compute tf and df
-		for i in range(N):
+		for i in range(doc_ct):
 			id = docIDs[i]
 			tfs[id] = {}
 			index[id] = {}
@@ -77,7 +101,7 @@ class InformationRetrieval():
 					tfs[id][t] += 1
 				else:
 					tfs[id][t] = 1
-				
+				td_mat[token2t_id[t]][i] += 1
 				uniqueTokens.add(t)
 			
 			# Increment dfs
@@ -89,7 +113,7 @@ class InformationRetrieval():
 		
 		# Compute idf from df
 		for t in dfs:
-			idfs[t] = np.log10(N/(dfs[t]))
+			idfs[t] = np.log10(doc_ct/(dfs[t]))
 		
 		# Multiply tf and idf
 		for id in tfs.keys():
@@ -100,6 +124,7 @@ class InformationRetrieval():
 		self.dfs = dfs
 		self.idfs = idfs
 		self.index = index
+		self.td_mat = td_mat
 
 	def rank(self, queries):
 		"""
