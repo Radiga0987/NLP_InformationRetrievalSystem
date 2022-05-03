@@ -1,9 +1,12 @@
 from sentenceSegmentation import SentenceSegmentation
 from tokenization import Tokenization
+from spellCheck import SpellCheck
 from inflectionReduction import InflectionReduction
 from stopwordRemoval import StopwordRemoval
 from informationRetrieval import InformationRetrieval
 from evaluation import Evaluation
+import itertools
+import numpy as np
 
 from sys import version_info
 import argparse
@@ -29,6 +32,7 @@ class SearchEngine:
 
 		self.tokenizer = Tokenization()
 		self.sentenceSegmenter = SentenceSegmentation()
+		self.spellChecker = SpellCheck()
 		self.inflectionReducer = InflectionReduction()
 		self.stopwordRemover = StopwordRemoval()
 
@@ -54,6 +58,12 @@ class SearchEngine:
 		elif self.args.tokenizer == "ptb":
 			return self.tokenizer.pennTreeBank(text)
 
+	def spellCheck(self, text, tokenizedDocs):
+		"""
+		Call the required stopword remover
+		"""
+		return self.spellChecker.correct_spellings(text, tokenizedDocs)
+
 	def reduceInflection(self, text):
 		"""
 		Call the required stemmer/lemmatizer
@@ -67,7 +77,7 @@ class SearchEngine:
 		return self.stopwordRemover.fromList(text)
 
 
-	def preprocessQueries(self, queries):
+	def preprocessQueries(self, queries, tokenizedDocs):
 		"""
 		Preprocess the queries - segment, tokenize, stem/lemmatize and remove stopwords
 		"""
@@ -84,9 +94,15 @@ class SearchEngine:
 			tokenizedQuery = self.tokenize(query)
 			tokenizedQueries.append(tokenizedQuery)
 		json.dump(tokenizedQueries, open(self.args.out_folder + "tokenized_queries.txt", 'w'))
+		# Spell check on queries
+		spellcheckQueries = []
+		for query in tokenizedQueries:
+			spellcheckQuery = self.spellCheck(query, tokenizedDocs)
+			spellcheckQueries.append(spellcheckQuery)
+		json.dump(spellcheckQueries, open(self.args.out_folder + "spell_checked_queries.txt", 'w'))
 		# Stem/Lemmatize queries
 		reducedQueries = []
-		for query in tokenizedQueries:
+		for query in spellcheckQueries:
 			reducedQuery = self.reduceInflection(query)
 			reducedQueries.append(reducedQuery)
 		json.dump(reducedQueries, open(self.args.out_folder + "reduced_queries.txt", 'w'))
@@ -131,7 +147,7 @@ class SearchEngine:
 		json.dump(stopwordRemovedDocs, open(self.args.out_folder + "stopword_removed_docs.txt", 'w'))
 
 		preprocessedDocs = stopwordRemovedDocs
-		return preprocessedDocs
+		return preprocessedDocs , tokenizedDocs
 
 
 	def evaluateDataset(self):
@@ -143,19 +159,21 @@ class SearchEngine:
 		- produces graphs of the evaluation metrics in the output folder
 		"""
 
-		# Read queries
-		queries_json = json.load(open(args.dataset + "cran_queries.json", 'r'))[:]
-		query_ids, queries = [item["query number"] for item in queries_json], \
-								[item["query"] for item in queries_json]
-		# Process queries 
-		processedQueries = self.preprocessQueries(queries)
-
 		# Read documents
 		docs_json = json.load(open(args.dataset + "cran_docs.json", 'r'))[:]
 		doc_ids, docs = [item["id"] for item in docs_json], \
 								[item["body"] for item in docs_json]
 		# Process documents
-		processedDocs = self.preprocessDocs(docs)
+		processedDocs ,tokenizedocs = self.preprocessDocs(docs)
+		tokenizeddocs = list((itertools.chain.from_iterable(tokenizedocs)))
+		tokenizedDocs = list((itertools.chain.from_iterable(tokenizeddocs)))
+
+		# Read queries
+		queries_json = json.load(open(args.dataset + "cran_queries.json", 'r'))[:]
+		query_ids, queries = [item["query number"] for item in queries_json], \
+								[item["query"] for item in queries_json]
+		# Process queries 
+		processedQueries = self.preprocessQueries(queries, tokenizedDocs)
 
 		# Build document index
 		self.informationRetriever.buildIndex(processedDocs, doc_ids)
@@ -197,6 +215,7 @@ class SearchEngine:
 		plt.plot(range(1, 11), nDCGs, label="nDCG")
 		plt.legend()
 		plt.title("Evaluation Metrics - Cranfield Dataset")
+		#plt.yticks(np.linspace(0,0.7,16))
 		plt.xlabel("k")
 		plt.savefig(args.out_folder + "eval_plot.png")
 
@@ -243,7 +262,7 @@ if __name__ == "__main__":
 						help = "Path to output folder")
 	parser.add_argument('-segmenter', default = "punkt",
 	                    help = "Sentence Segmenter Type [naive|punkt]")
-	parser.add_argument('-tokenizer',  default = "ptb",
+	parser.add_argument('-tokenizer',  default = "naive",
 	                    help = "Tokenizer Type [naive|ptb]")
 	parser.add_argument('-custom', action = "store_true", 
 						help = "Take custom query as input")

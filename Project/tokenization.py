@@ -9,7 +9,7 @@ from nltk.tokenize import TreebankWordTokenizer
 class Tokenization():
 
 	def __init__(self):
-		self.punct_symbols = ['\'','\"','?', ':', '!', '.', ',', ';','&','#','(',')','[',']','{','}','_','|','-']
+		self.punct_symbols = ['\"','?', ':', '!', '.', ',', ';','&','#','(',')','[',']','{','}','_','|','-',' ','']
 
 	def naive(self, text):
 		"""
@@ -71,8 +71,12 @@ class Tokenization():
 		if isinstance(text, list):
 			for s in text:
 				if isinstance(s, str):
-					tokens = TreebankWordTokenizer().tokenize(s)
+					Tokens = TreebankWordTokenizer().tokenize(s)
+					tokens = []
+					for t in Tokens: 
+						tokens.extend(re.split('[^a-zA-Z\d\']', t))
 					tokenizedText.append(tokens)
+
 				else:
 					print("Error: Text input list does not contain strings")
 					return []
@@ -93,4 +97,4 @@ if __name__ == '__main__':
 	
 	tk = Tokenization()
 	print(tk.naive(['I like trains, but cars are better.', 'Give me some sunshine!', 'Don\'t take that']))
-	print(tk.pennTreeBank(['I like trains, but cars are better.', 'Give me some sunshine!', 'Don\'t take that']))
+	print(tk.pennTreeBank(['I like trains, \'but cars are-better.', 'Give me some sunshine!', 'Don\'t take that']))
