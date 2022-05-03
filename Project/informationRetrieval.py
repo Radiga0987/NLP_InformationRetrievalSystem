@@ -141,7 +141,8 @@ class InformationRetrieval():
 			ct += 1
 			if energy > 0.9*tot_energy:
 				break
-		ct = S.shape[0]
+		# ct = S.shape[0]
+		ct = 292
 		print("number of singular values considered:, vs total:", ct, S.shape[0])
 		U_k = U[:, :ct]
 		S_k = S[:ct,:ct]
